@@ -1,4 +1,4 @@
-from src.example import hello
+from src.market_poker.engine import run_game
 
 if __name__ == "__main__":
-    hello()
+    run_game()
