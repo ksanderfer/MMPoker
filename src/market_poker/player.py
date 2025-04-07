@@ -1,14 +1,38 @@
+from collections import defaultdict
+from market import Spread
+
 class Player:
     def __init__(self, name: str):
         self.name = name
         self.hole_cards = []
         self.chips = 1000
-        self.spreads = {} # {street: Spread}
-        
-class Spread:
-    def __init__(self, player, hand_id, bid, ask, size=1):
-        self.player = player
-        self.hand_id = hand_id # will probably be the player name associated with the hand
-        self.bid = bid
-        self.ask = ask
-        self.size = size  # Number of contracts or volume
+        self.spreads = defaultdict(Spread) # {street: Spread}
+        self.options = []
+        self.owned =  defaultdict(int) # {hand_id: size}
+        self.ready = False # flag indicating if user is ready to proceed to next street
+
+    def ready_true(self):
+        self.ready = True
+
+    def not_ready(self):
+        self.ready = False
+
+    def buy(self, hand_id, price, size):
+        if (price * size) <= self.chips:
+            self.owned[hand_id] += size
+            self.chips -= (price * size)
+            return True
+        else:
+            print("Insufficient balance to purchase")
+            return False
+
+    def sell(self, hand_id, price, size):
+        if (size * 100) <= self.chips: # Must be able to cover collateral
+            self.owned[hand_id] -= size
+            self.chips += size * price
+            return True
+        else:
+            print("Insufficient balance to cover risk")
+            return False
+
+    
