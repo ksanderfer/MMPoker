@@ -26,19 +26,3 @@ class Option:
 """
 Idea: give players the option to "run a sim" at a cost (e.g. “Pay $1 to compute the EV of this hand”),  to reward players who invest in "research."
 """
-
-class Option_Market:
-    def __init__(self, temp):
-        self.temp = temp
-
-    def compute_vwap(spreads):
-        weighted_total = 0
-        total_volume = 0
-
-        for s in spreads:
-            if s.bid <= s.ask:
-                midpoint = (s.bid + s.ask) / 2
-                weighted_total += midpoint * s.size
-                total_volume += s.size
-
-        return weighted_total / total_volume if total_volume > 0 else None
