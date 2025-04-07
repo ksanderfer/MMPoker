@@ -1,5 +1,5 @@
 from collections import defaultdict
-from market import Spread
+from src.market_poker.market import Spread
 
 class Player:
     def __init__(self, name: str):
@@ -10,6 +10,9 @@ class Player:
         self.options = []
         self.owned =  defaultdict(int) # {hand_id: size}
         self.ready = False # flag indicating if user is ready to proceed to next street
+
+    def __str__(self):
+        return self.name
 
     def ready_true(self):
         self.ready = True

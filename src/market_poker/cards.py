@@ -7,19 +7,17 @@ class Deck:
 
     def deal_hole(self, players: list):
         for player in players:
-            for _ in range(2):
-                player.hole_cards.append(self.deck.draw)
+            player.hole_cards = self.deck.draw(2)
 
     def deal_community(self, street: str):
         if street == "flop":
-            for _ in range (4):
-                self.community_cards.append(self.deck.draw)
-
+            self.community_cards += self.deck.draw(3)
         elif street == "turn":
-            self.community_cards.append(self.deck.draw)
-
+            self.community_cards.append(self.deck.draw(1)[0])
+        elif street == "river":
+            self.community_cards.append(self.deck.draw(1)[0])
         else:
-            raise ValueError("Invalid street type")
+            raise ValueError("Invalid street")
 
     def evaluate_hands(self, players: list):
         for player in players:

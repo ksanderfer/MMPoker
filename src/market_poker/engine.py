@@ -1,8 +1,10 @@
-from cards import *
-from market import *
-from option import *
-from player import *
+from src.market_poker.cards import *
+from src.market_poker.market import *
+from src.market_poker.option import *
+from src.market_poker.player import *
 from collections import defaultdict
+from treys import Card
+import time
 
 class GameEngine:
     def __init__(self, players):
@@ -14,8 +16,18 @@ class GameEngine:
 
     def run_game(self):
         while len(self.players) > 1:
+            # Get new deck, deal and view cards
+            self.deck = Deck()
             self.deck.deal_hole(self.players)
+            for player in self.players:
+                print(f"{player.name}'s hand: ", end="")
+                Card.print_pretty_cards(player.hole_cards)
+
             for street in ["preflop", "flop", "turn"]:
+                if street != "preflop":
+                    self.deck.deal_community(street)
+                    print(f"\n{street.title()}: ", end="")  # Use title case for nicer formatting
+                    Card.print_pretty_cards(self.deck.community_cards)
                 for player in self.players:
                     player.not_ready()
                 self.submit_spreads()
@@ -24,11 +36,14 @@ class GameEngine:
                     self.allow_early_exercise(street)
                 # allow option trading here
                 self.order_match()
-                self.deck.deal_community(street) 
+                
+            self.deck.deal_community("river")
+            print(f"River: ", end="")
+            Card.print_pretty_cards(self.deck.community_cards)
             self.settle_game()
 
     def order_match(self):
-        print("\n---Matching orders...---")
+        print("\n---Matching orders---")
 
         for hand_id in self.spreadbook.book:
             bids = sorted([spread for spread in self.spreadbook.get_spreads(hand_id) if spread.bid > 0],
@@ -46,13 +61,12 @@ class GameEngine:
                 # Execute trade
                 total_cost = trade_price * trade_quantity
                 if buyer.buy(hand_id, trade_price, trade_quantity) and seller.sell(hand_id, trade_price, trade_quantity):
+                    time.sleep(0.5)
                     print(f"{buyer} bought {trade_quantity} shares of {hand_id} at {trade_price: .2f} from {seller}. Total cost = {total_cost: .2f} chips")
                 elif not buyer.buy(hand_id, trade_price, trade_quantity):
-                    print("Trade was invalid due to insufficient buyer funds.")
                     bids.pop(0)
                     continue
                 else:
-                    print("Trade was invalid due to insufficient seller funds.")
                     asks.pop(0)
                     continue
 
@@ -76,7 +90,7 @@ class GameEngine:
                 spread_changed = False
 
                 if player.ready:
-                    print(f"{player.name} has marked themselves ready. Skipping...")
+                    print(f"{player.name} has marked themselves ready to move to the next street. Skipping...")
                     num_unchanged += 1
                     continue
 
@@ -84,7 +98,8 @@ class GameEngine:
 
                 for target_player in self.players:
                     hand_id = target_player.name
-                    print(f"  Submit a new spread on {hand_id}'s hand ({target_player.hole_cards})?")
+                    print(f"  Submit a new spread on {hand_id}'s hand?")
+                    Card.print_pretty_cards(target_player.hole_cards)
                     will_submit = input("    Type y/n: ").strip().lower()
 
                     if will_submit != "y":
@@ -141,7 +156,7 @@ class GameEngine:
                     print(f"    {spread.player.name}: Bid = {spread.bid:.2f} chips, Ask = {spread.ask:.2f} chips, Size = {spread.size}")
                 else:
                     print(f"    {spread.player.name} has not submitted a spread on this hand.")
-            print(f"    Best bid: {self.spreadbook.get_best_bid}, best ask: {self.spreadbook.get_best_ask}")
+            print(f"    Best bid: {self.spreadbook.get_best_bid(hand_id)}, best ask: {self.spreadbook.get_best_ask(hand_id)}")
         else:
             print("    No spreads submitted.")
 
