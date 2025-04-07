@@ -1,27 +1,27 @@
 from treys import Deck as Tdeck, Evaluator
 
 class Deck:
-    def __init__ (self):
+    def __init__(self):
         self.deck = Tdeck()
         self.community_cards = []
 
-    def deal_hole (self, players):
+    def deal_hole(self, players: list):
         for player in players:
             for _ in range(2):
                 player.hole_cards.append(self.deck.draw)
 
-    def deal_community (self, street):
+    def deal_community(self, street: str):
         if street == "flop":
             for _ in range (4):
                 self.community_cards.append(self.deck.draw)
 
-        elif street in ["turn", "river"]:
+        elif street == "turn":
             self.community_cards.append(self.deck.draw)
 
         else:
-            print("cards.py: invalid street")
+            raise ValueError("Invalid street type")
 
-    def evaluate_hands (self, players):
+    def evaluate_hands(self, players: list):
         for player in players:
             evaluator = Evaluator()
             hand_strengths = {
